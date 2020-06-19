@@ -1,0 +1,240 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Facebook</title>
+    <link rel="stylesheet" href={% static 'css/header.css' %}>
+    <link rel="stylesheet" href={% static 'css/profile.css' %}>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script src="https://use.fontawesome.com/e0cb98a9dc.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  </head>
+  <body>
+
+    <header>
+      <div class="logo-container">
+        <div class="logo">
+          <img src={% static 'images/fb.png' %} alt="">
+        </div>
+      </div>
+      <div class="search-bar">
+        <input type="text" name="" value="" placeholder="Search">
+      </div>
+      <div class="nav">
+        <ul>
+          <li> <a href="{% url "app:home" in_user.id %}"><i class="fa fa-home" aria-hidden="true"></i></a> </li>
+          <li> <a href="#"><i class="fa fa-play-circle-o" aria-hidden="true"></i></a> </li>
+          <li> <a href="#"><i class="fa fa-users" aria-hidden="true"></i></a> </li>
+        </ul>
+      </div>
+      <div class="profile">
+        <div class="profile-pic">
+          <img src="{{in_user_info.profile_pic.url}}" alt="">
+        </div>
+        <div class="username">
+          <h3>{{in_user.first_name}} {{in_user.last_name}}</h3>
+        </div>
+      </div>
+    </header>
+
+    <div class="menu ">
+      <ul>
+        <li>
+          <a href="{% url 'app:profile' in_user.id in_user.id %}">
+            <span class="material-icons">
+              account_circle
+            </span>
+            Profile
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'app:logout' %}">
+            <span class="material-icons">
+              launch
+            </span>
+            Logout
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <section class="profile-container ">
+
+      <div class="cover-pic edit">
+        {% if view_user_info.cover_pic %}
+        <img src="{{view_user_info.cover_pic.url}}" alt="">
+        {% else %}
+        <h1>No Cover pic</h1>
+        {% endif %}
+        {% if in_user == view_user %}
+        <form id="cover_pic_form" enctype="multipart/form-data" method="post" action="{% url 'app:cover_pic_change' in_user.id %}">
+            {% csrf_token %}
+          <input type="file" name="cover_pic" value="" id="cover_pic">
+          <label for="cover_pic">
+            <span class="material-icons">
+              create
+            </span>
+            Edit
+          </label>
+        </form>
+        {% endif %}
+      </div>
+
+      <div class="profile-picture edit">
+        {% if view_user_info.profile_pic %}
+        <img src="{{view_user_info.profile_pic.url}}" alt="">
+        {% else %}
+        <h3>No pic</h3>
+        {% endif %}
+        {% if in_user == view_user %}
+        <form id="profile_pic_form" enctype="multipart/form-data" method="post" action="{% url 'app:profile_pic_change' in_user.id %}">
+            {% csrf_token %}
+          <input type="file" name="profile_pic" value="" id="profile_img">
+          <label for="profile_img">
+            <span class="material-icons">
+              create
+            </span>
+            Edit
+          </label>
+        </form>
+        {% endif %}
+      </div>
+
+      <div class="name-and-bio">
+        <h1>{{view_user.first_name}} {{view_user.last_name}}</h1>
+        <p id="yourbio">{{view_user_info.about}}</p>
+        {% if in_user == view_user %}
+        {% if in_user_info.about %}
+        <a href="#" onclick="addbio()" id="addbio" >Change bio</a>
+        {% else%}
+        <a href="#" onclick="addbio()" id="addbio" >Add bio</a>
+        {% endif %}
+        <form class=""  method="post" enctype="multipart/form-data" action="{% url 'app:addbio' in_user.id %}">
+          {% csrf_token %}
+          <textarea name="bio" rows="8"  placeholder="Describe Yourself !!"></textarea>
+          <button type="submit" name="button">Add</button>
+          <a href="#" onclick="nobio()">Cancel</a>
+        </form>
+        {% endif %}
+      </div>
+
+      <div class="timeline">
+        <h4>Timeline</h4>
+
+
+        {% for i in all_posts %}
+        <div class="post">
+          <div class="post-maker">
+            <div class="profile-pic">
+              <img src="{{i.user_info.profile_pic.url}}" alt="">
+            </div>
+            <h1>{{i.user.first_name}} {{i.user.last_name}}</h1>
+          </div>
+          <p>{{i.text}}</p>
+          {% if i.photo %}
+          <div class="post-img">
+            <img src="{{i.photo.url}}" alt="Hey">
+          </div>
+          {% endif %}
+          {% if i.videofile %}
+          <div class="post-video">
+            <video src="{{i.videofile.url}}" controls>
+            </video>
+          </div>
+          {% endif %}
+          <div class="likes-comments"  data-catid="{{ in_user.id }}">
+            <div class="like" data-catid="{{ i.id }}">
+              <i class="fa fa-thumbs-up" aria-hidden="true" ></i><h5 id="like{{i.id}}">Likes ({{i.l}})</h5>
+            </div>
+            <div class="comment" data-catid={{view_user.id}}>
+              <form class="" id="comment-form" enctype="multipart/form-data" data-catid="{{ i.id }}">
+                {% csrf_token %}
+                <input type="text" name="" value="" placeholder="Comment" id="comment-body{{i.id}}">
+                <button type="submit" name="button">Post</button>
+              </form>
+            </div>
+          </div>
+          <span>Comments</span>
+          <div class="recent-comments" id="recent-comments{{i.id}}">
+            {% for c in all_comments %}
+            {%  if forloop.parentloop.counter == forloop.counter %}
+              {% for x in c %}
+                <h4>{{x.user.first_name}} {{x.user.last_name}}</h4>
+                <p>{{x.cmnt}}</p>
+              {% endfor %}
+            {% endif %}
+            {% endfor %}
+          </div>
+
+        </div>
+        {% endfor %}
+
+
+
+
+
+      </div>
+    </section>
+
+    <script src={% static 'js/home.js' %} charset="utf-8"></script>
+    <script type="text/javascript">
+
+    $('.like').click(function(){
+    var catid ,user;
+    catid = $(this).attr("data-catid");
+    user = $(".likes-comments").attr("data-catid");
+    $.ajax(
+    {
+      type:"GET",
+      url: "/likepost",
+      data:{
+            post_id: catid,
+            user_id:user,
+         },
+         success: function( data )
+         {
+           var id = "like"+catid;
+           var text = "Likes(" + data +")";
+           document.getElementById(id).innerHTML = text;
+         }
+       })
+     });
+
+       $(document).on('submit' , '#comment-form' , function(e){
+         e.preventDefault();
+         var catid,user,body;
+         catid = $(this).attr("data-catid");
+         user = $(".comment").attr("data-catid");
+         body_id = "comment-body" + catid;
+         body = document.getElementById(body_id).value;
+         console.log(catid + " " + user + " " + body);
+         $.ajax(
+           {
+             type:"GET",
+             url:"/comments",
+             data:{
+               post_id:catid,
+               user_id:user,
+               body:body,
+             },
+             success: function(data) {
+               console.log(data);
+               console.log(catid);
+               var idname = "recent-comments"+catid;
+               console.log(document.getElementById(idname).innerHTML);
+               console.log(data[0]);
+               console.log(data[2]);
+               document.getElementById(idname).innerHTML = "<div><h4>"+data[0]+" "+data[1]+"</h4><p>"+data[2]+"</p></div>" + document.getElementById(idname).innerHTML;
+               document.getElementById(body_id).value = "";
+             }
+           }
+         )
+       });
+
+    </script>
+  </body>
+</html>
